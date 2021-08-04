@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use App\File;
 use Illuminate\Support\Facades\URL;
 use Carbon\Carbon;
-
+//Models
 use App\Models\Recordings;
 
 class UserRecordingsController extends Controller
@@ -33,7 +33,7 @@ class UserRecordingsController extends Controller
         $rules = [
             'name' => 'required', 
             'length' => 'required', 
-            'recording' => 'required|file|mimes:audio/mpeg,mpga,mp3,wav,aac'
+            'recording' => 'required|file|mimes:audio/mpeg,mpga,mp3,wav,aac,m4a'
         ];
 
         $validation = \Validator::make($request->all(), $rules);
@@ -119,6 +119,7 @@ class UserRecordingsController extends Controller
         $pageRecordings =   Recordings::where(  $where  )
                             ->where('local_name', 'LIKE', '%'.$local_name.'%')
                             ->where('name', 'LIKE', '%'.$search.'%')
+                            ->orderBy('id', 'DESC')
                             ->skip( $skip   )
                             ->take( $take   )
                             ->get();
@@ -141,6 +142,80 @@ class UserRecordingsController extends Controller
         $return['pageCount'] =   (int)$pageCount;
         $return['data'] =   $pageRecordings;
         //respond with the list of recordings
+        return response()->json($return, $this->errorCodes("success"));
+    }
+
+    public function editRecording (Request $request)
+    {
+        $user = $request->user();
+        $user = Auth::user();
+        $return = [ 'code'   =>  $this->errorCodes("failed") ];
+
+        if(!$user){
+            $return['message']  =   "User not found!";
+            return response()->json( $return , $this->errorCodes("failed") );
+        }
+
+        //validation on request
+        $rules = [
+            'record_id' => 'required|exists:recordings,id',
+            'recording' => 'required|file|mimes:audio/mpeg,mpga,mp3,wav,aac,m4a'
+        ];
+
+        $validation = \Validator::make($request->all(), $rules);
+        if ($validation->fails()) {
+            $return['message']  =   $validation->messages()->all()[0];
+            return response()->json( $return , $this->errorCodes("failed") );
+        }
+
+        //get record of recording id
+        $recording = Recordings::find($request->record_id);
+
+        if( !$recording  ){
+            $return['message']  =   "Record dosn't exists for this user.";
+            return response()->json( $return , $this->errorCodes("failed") );
+        }
+
+        if( isset($request->name ) && !empty( $request->name )   ){
+            $recording->name    =   $request->name;
+        }
+
+        if( isset($request->local_name ) && !empty( $request->local_name )   ){
+            $recording->local_name    =   $request->local_name;
+        }
+
+        if( isset($request->length ) && !empty( $request->length )   ){
+            $recording->length    =   $request->length;
+        }
+
+        
+        //update recording details
+        if($request->hasFile('recording'))
+        {
+            // $file = $request->file;
+            $uniqueid=uniqid();
+            $original_name=$request->file('recording')->getClientOriginalName();
+            $size=$request->file('recording')->getSize();
+            $extension=$request->file('recording')->getClientOriginalExtension();
+            $filename=Carbon::now()->format('Ymd').'_'.$uniqueid.'.'.$extension;
+            // $audiopath=url(SELF::$AUDEIO_STORAGE.$filename);
+            $path=$request->file('recording')->storeAs('public/uploads/recordings/',$filename);
+
+            if( $recording->recording ){
+                Storage::delete('public/uploads/recordings/'.$recording->recording);
+            }
+
+            $recording->recording = $filename;
+            $recording->folder = SELF::$AUDEIO_STORAGE;
+        }
+
+        $recording->save();
+
+        $return['code'] =   $this->errorCodes("success");
+        $return['message'] =   "Recording updated successfully";
+        // $return['data'] =   $recording;
+
+        //respond with new recording
         return response()->json($return, $this->errorCodes("success"));
     }
 }

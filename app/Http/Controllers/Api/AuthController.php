@@ -46,10 +46,18 @@ class AuthController extends Controller
             'otp'   =>  $otp
         ]);
 
+        $emailBody   =  'Hello '.$user->first_name.',';
+        $emailBody  .=  '<br/><br/><br/>';
+        $emailBody  .=   ' You are successfuly registered with us, Please find the One Time Password for account verifications below.';
+        $emailBody  .=  '<br/><br/>';
+        $emailBody  .=   ' <strong> Your OTP </strong>: '.$otp;
+        $emailBody  .=  '<br/><br/><br/>';
+        $emailBody  .=  'Thanks';
+
         $emailParams = array(
-                "to"=>$request->email, 
-                "subject"=>'Account verification otp.', 
-                "content"=>' One time password : '.$otp
+                "to"        =>  $request->email, 
+                "subject"   =>  'Account verification otp.', 
+                "content"   =>  $emailBody
             );
 
         $this->sendEmail($emailParams);
@@ -77,16 +85,26 @@ class AuthController extends Controller
             return response()->json( $return , $this->errorCodes("failed") );
         }
 
+        $user   =   User::where( 'email', $request->email )->first();
+
         $otp = mt_rand(1000,9999);
 
-        $affected = DB::table('users')
-              ->where('email', $request->email)
-              ->update(['otp' => $otp]);
+        $user->otp  =   $otp;
+        $user->save();
+
+        $emailBody   =  'Hello '.$user->first_name.',';
+        $emailBody  .=  '<br/><br/><br/>';
+        $emailBody  .=   ' We found your request for One time password for you account.';
+        $emailBody  .=  '<br/><br/>';
+        $emailBody  .=   ' <strong> Your OTP </strong>: '.$otp;
+        $emailBody  .=  '<br/><br/><br/>';
+        $emailBody  .=  'Thanks';
+        
 
         $emailParams = array(
-            "to"=>$request->email, 
-            "subject"=>'Email verifications otp.', 
-            "content"=>' One time password : '.$otp
+            "to"        =>  $request->email, 
+            "subject"   =>  'Email verifications otp.', 
+            "content"   =>  $emailBody
         );
 
         $this->sendEmail($emailParams);

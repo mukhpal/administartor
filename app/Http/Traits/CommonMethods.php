@@ -13,6 +13,9 @@ use DateTime;
 trait CommonMethods {
 
   public static $AUDEIO_STORAGE = "/storage/uploads/recordings/";
+  public static $PROFILE_PIC = "/storage/uploads/profile_pic/";
+  public static $JINGLES_STORAGE = "/storage/uploads/jingles/";
+  public static $FEEDBACK_EMAIL = "mps@mailinator.com";
 
     // common function to send email
     public function sendEmail($dataArry=NULL){

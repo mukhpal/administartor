@@ -25,7 +25,16 @@ Route::middleware('auth:api')->group(function() {
 
     Route::get('user/{userId}/detail', 'App\Http\Controllers\Api\UserController@show');
     Route::post('user/change-password', 'App\Http\Controllers\Api\UserController@changePassword');
+    Route::post('user/edit_profile', 'App\Http\Controllers\Api\UserController@editProfile');
+    Route::post('user/remove_user', 'App\Http\Controllers\Api\UserController@deleteAccoutPermanentaly');
     
     Route::post('user/saverecording', 'App\Http\Controllers\Api\UserRecordingsController@saveRecording');
     Route::post('user/fetchrecording', 'App\Http\Controllers\Api\UserRecordingsController@fetchRecordings');
+    Route::post('user/editrecording', 'App\Http\Controllers\Api\UserRecordingsController@editRecording');
+    
+    Route::post('get_jingles', 'App\Http\Controllers\Api\JingleController@getJingles');
+    Route::post('user/feedback', 'App\Http\Controllers\Api\FeedbackController@userFeedback');
+
+    Route::post('user/stripe_token', 'App\Http\Controllers\Api\StripeController@createToken');
+    Route::post('user/payment', 'App\Http\Controllers\Api\StripeController@stripePayment');
 });

@@ -16,11 +16,11 @@ class AdminTableSeeder extends Seeder
      */
     public function run()
     {
-         DB::table('admins')->insert([
-            'name' => 'Admin',
-            'email' => 'admin@mailinator.com',
-            'password' => '$2y$10$oCoRTm/bWOHKMZLN0hrgJOji51dIyG8C3/844SUxSVBxDs1pMXJKy',
-            'is_super' =>1
+         DB::table('users')->insert([
+            'first_name'=>'Admin',
+            'email'=>'admin@mailinator.com',
+            'is_admin'=>'1',
+            'password'=> bcrypt('123456'),
         ]);
     }
 }
